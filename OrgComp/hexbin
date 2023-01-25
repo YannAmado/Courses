@@ -1,0 +1,224 @@
+.data
+.align 0
+Hexstring: .space 34
+
+.align 2
+
+DecimalWord: .word
+vetorBinario: .word
+
+
+.text
+.globl main
+main:
+
+	#ler valor a ser convertido (no máximo 32 caracteres) 
+	li $v0, 8
+	la $a0, Hexstring
+	la $a1, 34
+	syscall 
+	
+	#carregar enderço da string em $t0
+	la $t0, Hexstring
+	
+	#carrega parametro para o $t2
+	li $t2, 10
+	
+	#carrega endeço do vetor em $t8
+	la $t8, DecimalWord
+	
+	#contador será $t4
+	li $t4, 0
+	
+#Pega caracter a carter da HexString e converte para seu valor da tabela ascii ou seja '1' -> 1
+#ou seja um vetor de '0'-'F', vira um vetor de 0-15
+#$t0 = Enderco String Hexa
+#$t2 = 10, serve para compara com o \n->10(ascii)
+#$t8 = enderco da word DecimalWord
+#$t4= contador	
+ConvertCharToIntHB:
+
+	#carrega um dos caracteres para o $t1
+	lb $t1, 0 ($t0)
+	
+	#desvia caso alcance o ultimo caracter
+	beq $t1, $t2, endConvertCharToIntHB
+	
+	#transformar caracter no valor que ele representa na tabela ascii
+	addi $t1, $t1, -48
+	
+	#se o valor do digito for menor que 10 desvia
+	blt $t1, $t2, pulaHB
+	addi $t1, $t1, -7
+	
+#arnazena o valores 0-15 na Decimalword e anda com a string e volta pro loop	
+pulaHB:
+	
+	#armazena valor achado no vetor 
+	sw $t1, 0 ($t8)
+	
+	#incrementa $t4
+	addi $t4, $t4, 1
+	
+	#incrementa $t0
+	addi $t0, $t0, 1
+	
+	#incrementa $t8
+	addi $t8, $t8, 4
+	
+	j ConvertCharToIntHB
+	
+endConvertCharToIntHB:
+
+	# $t3 recebera 16 para a pontenciação
+	li $t3, 16
+
+	#$t9 servira de paramentro para o fim do loop2
+	li $t9, 0
+
+#Pega o valor do caracter e calcula 16^(posicao) e soma
+#$t1 = valor da posicao
+#$t3 = 16 base da potenciacao
+#$t9= parametro de comparaco pra fim do loop(CaLcularDec)
+#$t8 = enderco da word DecimalWord
+#$t4= contador (parametro para o branch)
+#$t5= recebe valor da potenciacao	
+ CaLcularDecHB:
+ 
+ 	#anda a posicao do vetor
+	addi $t8, $t8, -4
+	
+	# não desvia enquanto $t9 for menor que $t4
+	beq $t9, $t4, endCaLcularDecHB
+	
+	#pega o digito de uma posição do vetor
+	lw $t1, 0 ($t8)
+	
+	#$t5 começa com 1
+	li $t5, 1
+	
+	# $t6 recebe $t9
+	move $t6, $t9
+	
+#Funcao de Potenciacao
+#$t3 = base
+#$t6 = expoente
+#$t5 resultado
+#resultado = b^e
+PotenciacaoHB:
+
+	#desvia apenas quando $t6 é igual 0 
+	beq $t6, $zero, endPotenciacaoHB
+	
+	#multiplica $t5 por 16
+	mul $t5, $t5, $t3
+	
+	#decrementa $t6
+	addi $t6, $t6 -1
+	
+	j PotenciacaoHB
+
+#fim da potencicaco
+#Total($t1) = posicao($t1) * [16^(posicao)]($t5)
+#decFinal($t7) += ($t1)	
+endPotenciacaoHB:
+	
+	#multiplica valor de $t1 por $t5
+	mul $t1, $t1, $t5
+	
+	#$t7 soma com $t1
+	add $t7, $t7, $t1
+	
+	#incrementa $t9
+	addi $t9, $t9, 1
+	
+	j CaLcularDecHB
+	
+endCaLcularDecHB:
+#converter do decimal para binário agora
+
+	#carregar registrador $t0 com 2 para a divisão 
+	li $t0, 2
+	
+	#carregar endereço em $t1
+	la $t1, vetorBinario
+	
+	#$t5 será o contador
+	move $t5, $zero
+	
+	
+#divide o número decimal fornecido por 2 
+#o quociente se torna o novo decimal
+#o resto de cada divisão é armazenado no vetorBinario
+# e repete o processo até o quociente for 0
+#$t7 terá o decimal
+# $t0 será o divisor(2)
+#$t1 o endereço do vetorBinario
+#$t5 contará quantas vezes o processo foi realizado
+ConvertBinarioHB:
+
+	#condicao de parada
+	beq $t7, $zero, endConvertBinarioHB
+	
+	# divide $s0
+	div $t7, $t0
+	
+	#salvar inteiro em $s0 e resto em $t2
+	mflo $t7
+	mfhi $t2
+	
+	#armazena t2 no vetor1
+	sw $t2, 0 ($t1)
+	
+	#incrementa t1
+	addi $t1, $t1, 4
+	
+	#incrementa $t5
+	addi $t5, $t5, 1
+	
+	#retorna para o inicio do loop
+	j ConvertBinarioHB
+
+#fim do loop	
+endConvertBinarioHB:
+
+	#verificar se o contador for 0 -> se for o valor binario final será 0 e encerra o programa
+	beq $t5, $zero, zero
+
+#vetorBinario possui o número binário invertido	-> imprimir digitos do fim para o inicio
+# $t4 pega o valor no vetor e imprime	
+ImprimeBinarioHB:
+	
+	#anda com a posicao de t1
+	addi $t1, $t1, -4
+	
+	#decrementa contador
+	addi $t5, $t5, -1
+	
+	#condicao de parada -> contador atinge -1
+	blt $t5, $zero, endImprimeBinarioHB
+	
+	#acessa valor no vetorBinario
+	lw $s4, 0 ($t1)
+	
+	#imprime valor
+	li $v0, 1
+	move $a0, $s4
+	syscall 
+	
+	#retorna para o inicio do loop
+	j ImprimeBinarioHB
+
+#fim do loop e encerre programa
+endImprimeBinarioHB:
+
+	li $v0, 10
+	syscall
+	
+zero:
+	li $v0, 1
+	move $a0, $t5
+	syscall
+	
+	li $v0, 10
+	syscall

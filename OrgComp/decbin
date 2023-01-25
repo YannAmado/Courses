@@ -1,0 +1,103 @@
+.data
+
+.align 2
+
+vetorBinario: .word
+
+.text
+.globl main
+main:
+
+	#ler valor a ser convertido
+	li $v0, 5
+	syscall 
+
+	#mover valor para $s0
+	move $s0, $v0
+	
+	#carregar registrador $t0 com 2 para a divisão 
+	li $t0, 2
+	
+	#carregar endereço em $t1
+	la $t1, vetorBinario
+	
+	#$t5 será o contador
+	move $t5, $zero
+	
+	
+
+#divide o número decimal fornecido por 2 
+#o quociente se torna o novo decimal
+#o resto de cada divisão é armazenado no vetorBinario
+# e repete o processo até o quociente for 0
+#$s0 terá o decimal
+# $t0 será o divisor(2)
+#$t1 o endereço do vetorBinario
+#$t5 contará quantas vezes o processo foi realizado
+ConvertBinario:
+	
+	#condicao para parada do loop -> desvia se o quociente em $s0 for igual a 0
+	beq $s0, $zero, endConvertBinario
+	
+	# divide $s0 por 2
+	div $s0, $t0
+	
+	#salvar inteiro em $s0 e resto em $t2
+	mflo $s0
+	mfhi $t2
+	
+	#armazena resto t2 no vetorBinario
+	sw $t2, 0 ($t1)
+	
+	#incrementa posicao do vetorBinario em t1
+	addi $t1, $t1, 4
+	
+	#incrementa contador $t5
+	addi $t5, $t5, 1
+	
+	#retorna para o inicio do loop
+	j ConvertBinario
+
+#fim do loop 
+endConvertBinario:
+
+	#verificar se o contador for 0 -> se for o valor binario final será 0 e encerra o programa
+	beq $t5, $zero, zero
+	
+#vetorBinario possui o número binário invertido	-> imprimir digitos do fim para o inicio
+# $t4 pega o valor no vetor e imprime	
+ImprimeBinario:
+	
+	#anda com a posicao de t1
+	addi $t1, $t1, -4
+	
+	#decrementa contador
+	addi $t5, $t5, -1
+	
+	#condicao de parada -> contador atinge -1
+	blt $t5, $zero, endImprimeBinario
+	
+	#acessa valor no vetorBinario
+	lw $t4, 0 ($t1)
+	
+	#imprime valor
+	li $v0, 1
+	move $a0, $t4
+	syscall 
+	
+	#retorna para o inicio do loop
+	j ImprimeBinario
+
+#fim do loop e encerre programa
+endImprimeBinario:
+
+	li $v0, 10
+	syscall
+	
+zero:
+	li $v0, 1
+	move $a0, $t5
+	syscall
+	
+	li $v0, 10
+	syscall

@@ -1,0 +1,144 @@
+.data
+.align 0
+HexString: .space 34
+
+.align 2
+
+DecimalWord: .word
+
+.text
+.globl main
+main:
+
+	#ler valor a ser convertido (no máximo 32 caracteres) 
+	li $v0, 8
+	la $a0, HexString
+	la $a1, 34
+	syscall 
+	
+	#carregar enderço da HexString em $t0
+	la $t0, HexString
+	
+	#carrega parametro para o $t2
+	li $t2, 10
+	
+	#carrega endeço do DecimalWord em $t8
+	la $t8, DecimalWord
+	
+	#contador será $t4
+	li $t4, 0
+	
+#Pega caracter a carter da HexString e converte para seu valor da tabela ascii ou seja '1' -> 1
+#ou seja um vetor de '0'-'F', vira um vetor de 0-15
+#$t0 = Enderco String Hexa
+#$t2 = 10, serve para compara com o \n->10(ascii)
+#$t8 = enderco da word DecimalWord
+#$t4= contador
+ConvertCharToInt:
+
+	#carrega um dos caracteres para o $t1
+	lb $t1, 0 ($t0)
+	
+	#desvia caso alcance o ultimo caracter
+	beq $t1, $t2, endConvertCharToInt
+	
+	#transformar caracter no valor que ele representa na tabela ascii
+	addi $t1, $t1, -48
+	
+	#se o valor do digito for menor que 10 desvia pra pula
+	blt $t1, $t2, pula
+	addi $t1, $t1, -7
+	
+
+#arnazena o valores 0-15 na word e anda com a string e volta pro loop
+pula:
+
+	#armazena valor achado no DecimalWord 
+	sw $t1, 0 ($t8)
+	
+	#incrementa $t4
+	addi $t4, $t4, 1
+	
+	#incrementa $t0
+	addi $t0, $t0, 1
+	
+	#incrementa $t8
+	addi $t8, $t8, 4
+	
+	j ConvertCharToInt
+	
+endConvertCharToInt:
+
+	# $t3 recebera 16 para a pontenciação
+	li $t3, 16
+
+	#$t9 servira de paramentro para o fim do loop2
+	li $t9, 0
+
+#Pega o valor do caracter e calcula 16^(posicao) e soma
+#$t1 = valor da posicao
+#$t3 = 16 base da potenciacao
+#$t9= parametro de comparaco pra fim do loop(CaLcularDec)
+#$t8 = enderco da word DecimalWord
+#$t4= contador (parametro para o branch)
+#$t5= recebe valor da potenciacao	
+CaLcularDec:
+	
+	#anda a posicao do vetor
+	addi $t8, $t8, -4
+	
+	#não desvia enquanto $t9 for menor que $t4
+	beq $t9, $t4, EncerraHexDec
+	
+	#pega o digito de uma posição do DecimalWord
+	lw $t1, 0 ($t8)
+	
+	#$t5 começa com 1
+	li $t5, 1
+	
+	# $t6 recebe $t9
+	move $t6, $t9
+	
+#Funcao de Potenciacao
+#$t3 = base
+#$t6 = expoente
+#$t5 resultado
+#resultado = b^e
+Potenciacao:
+
+	#desvia apenas quando $t6 é igual 0 
+	beq $t6, $zero, endPotenciacao
+	
+	#multiplica $t5 por 16
+	mul $t5, $t5, $t3
+	
+	#decrementa $t6
+	addi $t6, $t6 -1
+	
+	j Potenciacao
+	
+#fim da potencicaco
+#Total($t1) = posicao($t1) * [16^(posicao)]($t5)
+#decFinal($t7) += ($t1)
+endPotenciacao:
+	
+	#multiplica valor de $t1 por $t5
+	mul $t1, $t1, $t5
+	
+	#$t7 soma com $t1
+	add $t7, $t7, $t1
+	
+	#incrmenta $t9
+	addi $t9, $t9, 1
+	
+	j CaLcularDec
+	
+EncerraHexDec: 
+	
+	li $v0, 1
+	move $a0, $t7
+	syscall
+	
+	li $v0, 10
+	syscall
+	

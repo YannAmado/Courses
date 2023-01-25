@@ -1,0 +1,3 @@
+C:/Users/Yann/Desktop/BCC/AlgAvanc/busca_bin/cmake-build-debug/CMakeFiles/busca_bin.dir
+C:/Users/Yann/Desktop/BCC/AlgAvanc/busca_bin/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Yann/Desktop/BCC/AlgAvanc/busca_bin/cmake-build-debug/CMakeFiles/rebuild_cache.dir

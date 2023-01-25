@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2021.1.1\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\AlgAvanc.dir/objects.a
+C:\MinGW\bin\ar.exe cr CMakeFiles\AlgAvanc.dir/objects.a @CMakeFiles\AlgAvanc.dir\objects1.rsp
+C:\MinGW\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\AlgAvanc.dir/objects.a -Wl,--no-whole-archive -o AlgAvanc.exe -Wl,--out-implib,libAlgAvanc.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\AlgAvanc.dir\linklibs.rsp

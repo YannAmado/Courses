@@ -1,0 +1,41 @@
+---
+title: "Data Analytics & Communication Assignment 3"
+author: "Marieke van Vugt"
+output: 
+  pdf_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Improving a figure
+
+Go back to the AI thesis repository (http://fse.studenttheses.ub.rug.nl/cgi/search/archive/advanced?screen=Search&thesis_type=bachelor&degree_programme=artificial_intelligence&agreed_repository=yes) and pick a thesis you find interesting. In this thesis, identify a figure that you think could use some improvement. Describe what is wrong with it and how it can be improved (if you cannot find a graph in the thesis, pick a different thesis). Think about the principles that we discussed in the lecture. Show both the original graph and the improved figure. 
+
+To be able to reproduce the graph, you may want to use a digitizer program. Here is a link to various software packages to digitize graphs, of which the webplotdigitizer is the most viable alternative for most: (https://alternativeto.net/software/webplotdigitizer/).
+
+# Making a shiny graph
+
+Nowadays, it is also possible to animate graphs such that the user can interact with it. In R, you can easily use shiny to create such graphs. For this you will need the shiny package in R. Under Linux, you will need to install the following dependent packages from the package manager for this to work: `r-cran-openssl`, `r-cran-curl`, and `r-cran-ggplot2`. (Remember that packages can be installed using: `install.packages("package name")`
+
+First familiarize yourself with shiny by doing the following tutorial: 
+(http://deanattali.com/blog/building-shiny-apps-tutorial/)
+
+Once you have gone through the tutorial, make a shiny graph of your choice from the data of your choice that you used in assignment 1 (derived from the website https://www.springboard.com/blog/data-science/15-fun-datasets-to-analyze/)
+
+Think about what aspect of the data would be nice to highlight in a Shiny app, and then build it. We will judge your contribution on:
+
+- whether it is clear from the graph what it demonstrates
+- whether you can interact with it
+- whether it makes use of Shiny capabilities
+- whether it is nicely designed
+
+Submit your graph as R code in a separate file (you can upload more than one file to Nestor) and describe in a paragraph why you designed the shiny graph in the way you did. Make sure that you do not use any R packages that cannot be installed with `install.packages`, and insert whatever package you use with the command `require`, such that it will automatically be installed for the user if he/she does not have it yet (this is extremely helpful for the student assistants grading your work). Also make sure you place the shiny app in one file, rather than dividing it into separate ui.R and server.R files.
+
+# Reflection
+
+Now reflect on what the benefits are of shiny graphs in general. You may want to think about  what you can do with Shiny graphs that you would not be able to do with a flat graph. Make sure you don't only reason in the abstract, but instead give also concrete examples, e.g., using the earlier parts of this assignment or your proposed Bachelor project from assignment 1. Aim to write about one paragraph. We will judge this paragraph with the rubric for writing from the syllabus.
+
+Please do not submit this assignment as a zip file, but rather attach the files separately (you can submit more than one file with your assignment).

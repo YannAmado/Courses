@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="Random"/>
+    <fullyQualifiedTypeName name="Agenda"/>
+    <fullyQualifiedTypeName name="org.junit.BeforeClass"/>
+    <fullyQualifiedTypeName name="org.knowm.xchart.XYChart"/>
+    <fullyQualifiedTypeName name="org.knowm.xchart.QuickChart"/>
+    <fullyQualifiedTypeName name="org.knowm.xchart.SwingWrapper"/>
+    <fullyQualifiedTypeName name="org.knowm.xchart.XYChartBuilder"/>
+    <fullyQualifiedTypeName name="org.knowm.xchart.XYSeries.XYSeriesRenderStyle"/>
+    <fullyQualifiedTypeName name="org.knowm.xchart.style.Styler.LegendPosition"/>
+</qualifiedTypeNameHistroy>

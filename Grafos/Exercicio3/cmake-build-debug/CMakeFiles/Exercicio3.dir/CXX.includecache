@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Yann/Desktop/BCC/Grafos/Exercicio3/buscarProfundidade.cpp
+stdio.h
+-
+stdlib.h
+-
+stack
+-
+list
+-
+

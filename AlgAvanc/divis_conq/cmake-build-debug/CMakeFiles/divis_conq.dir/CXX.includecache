@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Yann/Desktop/BCC/AlgAvanc/divis_conq/div-conq2.cpp
+stdio.h
+-
+stdlib.h
+-
+bits/stdc++.h
+-
+

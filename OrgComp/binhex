@@ -1,0 +1,214 @@
+.data
+
+.align 0
+RecebeMod16: .space 34
+inBinNum:.space 34
+VetAux: .space 34
+
+.text
+.globl main
+main:
+
+	#ler valor a ser convertido
+	li $v0, 8
+	la $a0, inBinNum
+	la $a1, 34
+	syscall 
+	
+	
+	
+
+#binario para hexadecimal
+	
+BinToDecBH:
+
+	#$t5 será o contador
+	move $t2, $zero
+	
+	#carregar endereço string
+	la $t1, inBinNum
+	
+	#carregar 10 para o registrador $s0
+	li $t3, 10	
+	
+loopToEnterBH:
+
+	#pegar char da string
+	lb $t4, 0($t1)
+	
+	#Condicao de parada se t4 for igual a \n
+	beq $t4, $t3, endLoopToEnterBH
+	
+	#somar 1 no reg $t1 para andar nas casas
+	addi $t1, $t1, 1
+	
+	#contador de casas
+	addi $t2, $t2, 1
+	
+	j loopToEnterBH
+	
+
+endLoopToEnterBH:
+
+
+	#carregar registrador $t6 com 2 para a pontenciação
+	li $t6, 2
+	
+	#responsavel por fazer o papel da "potencia" 
+	li $s0, 1
+	
+	#Valor decimal
+	li $s1, 0
+	
+	li $t3, -1
+	
+	
+#Loop de conversõ binário para decimal
+#t6 = 2 2^(posicao)
+#$s0 = 1 e vai sendo multiplicado por 2 ao
+#$t3 = -1 codicao de parada
+#$s1 = valor decimal
+# for (int i = strlen(nuBin); i > 0; i--) {
+#	aux = numBin[i];
+#	aux *= mult;
+#	mult *=2;
+#	total +=aux;
+#}
+loopBinToDecBH:
+	
+	#Andar com o numero e o contador pra -1
+	addi $t1, $t1, -1
+	
+	addi $t2, $t2, -1
+	
+	#verifiva se ja estamos na posicao final
+	beq $t2, $t3 , DecToHexBH
+	
+	#acessar caracter atual
+	lb $t4, 0($t1)
+	
+	#conversão de número ascii pra numeros inteiros
+	addi $t4, $t4, -48
+	
+	#Char[posicao] * mult
+	mul $t4, $s0, $t4
+	
+	#mult aumenta a potencia (2*2)
+	#atualiza mult: mult *=2
+	mul $s0, $t6, $s0
+	
+	#Total = Total + (Char[posicao] * mult)
+	add $s1, $s1, $t4
+	 
+	j loopBinToDecBH
+
+
+DecToHexBH:
+		
+	#carregar registrador $t0 com 16 para a divisão 
+	li $t0, 16
+	
+	#carregar endereço do RecebeMod16 em $t1
+	la $t1, RecebeMod16
+	
+	#carregar endereço do VetAux em $t8
+	la $t8, VetAux
+	
+	#carrega em $t9 o parametro para desvio
+	li $t9, 58
+	
+	#$t5 será o contador
+	move $t5, $zero
+	
+	
+	
+#Armazena Dec%16 em RecebeMod16, convertendo ints ascii
+#$s1 =  valor Decimal
+#$t0 = base 16
+#$t1 = enderco de Recebe Mod16
+#$t8 = endereço VetAux
+#$t9 = parametro de desvio (verificar se eh maior que '9' ->58)
+#$t5 = contador
+CreateVetModBH:
+	
+	#condição de parada
+	beq $s1, $zero, endCreateVetModBH
+	
+	# divide $s0 por 16
+	div $s1, $t0
+	
+	#salvar inteiro em $s0 e resto em $t2
+	mflo $s1
+	mfhi $t2
+	
+	#converter valor para representar o digito de acordo com a tabela ascii
+	addi $t2, $t2, 48 
+	
+	#se o valor do digito for menor que 10 desvia
+	blt $t2, $t9 , pulaBH
+	addi $t2, $t2, 7
+
+pulaBH: 
+	
+	#armazena t2 no RecebeMod16
+	sb $t2, 0 ($t1)
+	
+	#incrementa t1
+	addi $t1, $t1, 1
+	
+	#incrementa $t5
+	addi $t5, $t5, 1
+	
+	j CreateVetModBH
+	
+endCreateVetModBH:
+
+	#se o contador for 0 imprime valor final como 0
+	beq $t5, $zero, zeroBH
+
+
+# Inverte o vetor RecebeMod16($t1) armazenando ele no vetor VetAux($t8)
+#$t5 = contador/parametro do branch
+#recebe o valor da posicao de RecebeMod16 e armazena em VEtAux
+InverteModsBH:
+
+	#anda com a posicao de t1
+	addi $t1, $t1, -1
+	
+	#decrementa o contador
+	addi $t5, $t5, -1
+	
+	#ve se o contador chegou em 0
+	blt $t5, $zero, endInverteModsBH
+	
+	#pega o valor de $t4 (RecebeMod16)
+	lb $t4, 0 ($t1)
+	
+	#armazena em $t8(VetAux)
+	sb $t4, 0 ($t8)
+	
+	#anda com a posicao de $t8
+	addi $t8, $t8, 1
+	 
+	
+	j InverteModsBH
+
+	
+#Printa e finaliza o ocdigo	
+endInverteModsBH: 
+	
+	li $v0, 4
+	la $a0, VetAux
+	syscall
+	
+	li $v0, 10
+	syscall
+	
+#Printa e finaliza o ocdigo	
+zeroBH:
+	li $v0, 1
+	move $a0, $t5
+	syscall
+	
+	li $v0, 10
+	syscall

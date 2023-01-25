@@ -1,0 +1,213 @@
+---
+title: "Assignment 2 Data Analytics & Communication"
+author: "Micky Labreche s4021290 & Yann Amado S5091128"
+date: "30-11-2022"
+output: 
+  pdf_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ROCR)
+```
+
+# Logistic regression 
+(1) First we load in the data and make sure that some variables are interpreted as factors. Then we put the data from subject 8 into its own dataset.
+
+```{r, results='hide'}
+dat <- read.table("./decision.dat",header=T)
+
+dat$cohFac <- as.factor(dat$cohFac)
+dat$isDots <- as.factor(dat$isDots)
+
+is.factor(dat$cohFac)
+is.factor(dat$isDots)
+
+subj8 <- dat[dat$subjNo==8,]
+```
+
+(2) Now, we start with a logistic regression model for subject 8. We relate the `ER` variable to `RT`, `blocknum`, `isDots`, `cohFac`, and `isLeft`.
+
+```{r}
+mod <- glm(ER ~ RT + isDots + isLeft + cohFac + blocknum,data=subj8,
+           family=binomial(link="logit"))
+
+# Getting coefficients from model
+summary(mod)$coefficients
+
+# Turn the regression coefficients into odds
+exp(cbind(Odds_Ratio=coef(mod),confint(mod)))
+
+# Performing a chi-square test on the model
+anova(mod,test="Chisq")
+
+prob_change <- function(OR, base) {
+  prob <- OR*base/(1 + OR*base - base)
+  return(prob)
+}
+
+prob_change(1.11419598, mean(subj8$ER))
+prob_change(11.22986839, mean(subj8$ER))
+prob_change(1.81196733, mean(subj8$ER))
+prob_change(0.28999075, mean(subj8$ER))
+
+```
+
+We ask if we can predict whether the participant answered a trial correctly or incorrectly. We call this dependent variable, the error rate. We look at different possible variables that can influence the error rate using a logistic regression. A chi-square test was performed on the model to find if variables independently influenced the error rate. 
+
+We found that the relation between the response time and the error rate was significant (X^2(1)=89, p<0.01). The odds ratio corresponding to this relation is 1.11. The baseline probability of answering a trial incorrectly is 0.103. We find that this probability increases to 0.114 with a longer response time, which is a probability increase of 0.010.
+
+We then looked at the relation between the condition type and the error rate and found that this was significant (X^2(1)=145, p<0.01). In the dots condition the subject had a higher error rate with an odds ratio of 11.22. This means that the probability in the dots condition of getting a trial incorrect is 0.564, which is a very large increase compared to other variables.
+
+We also found that the relation between whether the dots were moving left or right had a significant effect on the error rate (X^2(1)=18, p<0.01). The odds ratio for this relation is 1.81. This means the left moving dots increased the error rate from 0.103 to 0.173.
+
+Lastly we saw that the relation between the task difficulty and the error rate was significant (X^2(1)=69, p<0.01). The odds ratio corresponding to this relation is 0.29. This means that an easy task lead to a decrease in error rate. The probability of an error is now 0.032 with an easy task.
+
+
+
+# Model assessment
+
+Now we try to examine the quality of the fit with an ROC using the code below.
+
+```{r}
+library(ROCR)
+
+# Plot ROC graph
+p <- predict(mod,type="response")
+pr <- prediction(p,subj8$ER)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+
+```
+We can see from the ROC graph that the model performs well. If the graph would show up as a straight line, the model would be no better than chance. The distributions in this case are further apart.
+
+We can look at the area under the curve to find if there is a good discrimination. 
+
+```{r}
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
+In this case the auc is 0.81, which is a little bit higher than 0.8 which indicates a good discrimination.
+
+(b) Now we look at the outliers in the data. The only variables that are continuous and can have outliers are the response time and the block. It seems that the response time has a lot of outliers.
+
+```{r}
+par(mfrow=c(1,2))
+hist(subj8$RT)
+boxplot(subj8$RT)
+```
+We can observe that the response time has a lot of outliers. The histogram on the left shows that the amount of outliers is relatively small compared to the data inside the IQR. However some of the values are quite far from the IQR.
+
+
+
+```{r}
+library("Hmisc")
+data <- subj8[, c(3,4,5,6,7)]
+rcorr(as.matrix(data))
+```
+# Model comparison
+
+It is important that the model fits the data well. A model that is too simple will cause underfitting and a
+model that is too complex leads to overfitting. In this exercise we start with a full model that incorporates
+all the variables. By selecting a subset of variables that explains the data best, we try to reduce any bias and
+variance in the data.
+
+(a) Use stepAIC to investigate what variables in this regression model are crucial and which ones may be
+left out. Report on the results. You can use code like the following:
+
+```{r}
+library("MASS")
+mod.step<-stepAIC(mod,trace=3)
+mod.step$anova
+```
+According to the results, the variables blocknum and RT can be left out, with the remaining variables isDots, isLeft and cohFac being crucial to the model. It's possible to verify this by analyzing the steps of AIC, initially it's AIC score was 1382.570, diminishing to 1380.721 after removing blocknum and to 1380.456 after removing RT; in other words, according to AIC, the model is able to achieve similar results even if those variables are removed.
+
+(b) Make a more complicated model by adding an interaction between coherence level and task type (i.e.,
+whether it is dots or control task). Fit this more complicated model and describe your results. Describe
+in your results what this interaction actually means.
+
+Fitting the model and measuring the AUC:
+
+```{r}
+mod <- glm(ER ~ RT + isDots + cohFac + isDots * cohFac + isLeft + blocknum,data=subj8, family=binomial(link="logit"))
+library(ROCR)
+p <- predict(mod,type="response")
+pr <- prediction(p,subj8$ER)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+
+```
+At first glance, it doesn't look like making this additional interaction makes that much of a difference. Upon further inspection of the AUC values, it's possible to observe that this additional interaction yielded an AUC value of 0.814, increased from 0.813. Although there can be said that there's a slight improvement, it's not possible to say if it's worth the additional complexity of the model. 
+This additional interaction describes a relationship between the variables isDots and cohFac, trying to relate both variables between each other. On a high level, we hope that this interaction will help the model to identify interactions between the nivel of difficulty with the type of trial the participant is partaking; on a low level, this interaction is a linear combination of the features that was related in order to further improve the accuracy of the model, a process known as feature extraction.
+
+(c) Run stepAIC again on the extended model and describe your findings. Was the interaction a good
+addition to the model? Explain your answer.
+
+```{r}
+mod.step<-stepAIC(mod,trace=3)
+mod.step$anova
+```
+The interaction resulted in a lower AIC score of roughly 4 points at every step, this is a slight improvement from the original model without this interaction. On the AIC model, the same variables blocknum and RT where deemed not significant enough and where discarded much like the more simple model. This slight change can be explained by the fact that this new feature is only a linear combination of two other features present in the data that reveals only a small bit of extra information to the model,
+
+Although this addition resulted in an improved result of both AIC and AUC scores, it's debatable whether or not this interaction is a good addition. From one hand, this extra interaction resulted in better scores, as well as making it possible to reduce the dimensionality of the model by removing both isDots and cohFac from the model; however, on the other hand, the results on this particular example don't seem to be significant enough to warrant the extra layer of complexity for this particular model.
+
+In the R implementation of AIC, if both isDots and cohFac are removed and changed for the new feature, the AIC algorithm will actually return that the most optimal model will also include the variables isDots and cohFac individually, as seen below. For this reason, we believe that it's not a good enough addition to actually implement in the model 
+
+```{r}
+mod <- glm(ER ~ RT + isDots * cohFac + isLeft + blocknum,data=subj8, family=binomial(link="logit"))
+mod.step<-stepAIC(mod,trace=3)
+mod.step$anova
+```
+
+
+
+# Extending this to algorithms more generally
+
+(a) Say, you are working on creating a classifier to detect humans in satellite images. Can you use AIC
+in this case? If so, why? If not, why not? What other methods could you use to compare different
+versions of your classifier? What model comparison methods are good for what kinds of models?
+
+Yes, it's possible to use. In order to use AIC 3 assumptions must be met:
+
+* The same data is used between models.
+* The models must measure the same outcome variable.
+* The dataset must have a sufficiently large sample size.
+
+Since our focus is to compare different versions of the same classifier, AIC will prove itself useful by comparing the models between themselves while taking into consideration the complexity of the model. 
+Other methods that could be used would be goodness of fit, BIC ,ROC curve and PSP. 
+
+* Goodness of fit: Verify how much the model fits the data correctly, can be used in the same dataset accross diferent models to verify which one most closely fits the data. It's good to measure similarly complex models, which in this case it'll measure which model has the highest accuracy in the dataset.
+* BIC (Bayesian Information Criterion): Closely related to AIC, can be used in the same instances as AIC, utilizes a Bayesian approach to tackle the problem. Takes into consideration the complexity of the models, making it possible to compare models that have different complexities.
+* ROC Curve: It's a graphical plot that illustrates the performance of a model on a given dataset when several classification threshold are utilized. It's good to compare models that tradeoff specifity and sensitivity, specially when one is favored over the other.
+* PSP (Parameter-Space-Partitioning): Compares models based on the parameter space they cover, taking into consideration how much space each parameter takes, taking into consideration the flexibility of the model. It's good for for comparing the decision processes of the model, making it possible to choose the one most adequate to the task taking into account the complexity of the model.
+
+In these kinds of large computational projects, you always have to worry about overfitting. One of the readings
+for this week talks about the danger of overfitting. As we learnt in the reading for this week, overfitting is
+deceptively easy, even when you use cross-validation.
+
+(b) How can overfitting still occur, even when you use cross-validation?
+
+If cross validation is repeatedly used in the same dataset, it's possible that information leaks into the model. For example, when using cross-validation to tune hyperparameters, if the same dataset is repeatedly used, cross validation will yield results in relation to that dataset, and not in relation to new unforeseen data like it should theoretically do. Meaning that, the model will have the best hyperparameters to that particular dataset, not generalizing well into other datasets, causing overfitting.
+
+(c) How is the lockbox method (also known as train-test/validation) different from cross-validation, and
+why is it effective to prevent overfitting?
+
+The lockbox method involves "locking away" one part of the dataset as a test set, which will only be used at the vary last moment to simulate the behaviour of that model on new unforeseen data, giving an estimate of how well it'll generalize without any bias involved. The lockbox method by itself does not prevent overfitting but it gives a metric of how much overfitting has occurred.
+
+(d) What other methods could you use to prevent overfitting? For each method you mention, briefly explain
+how it helps to prevent overfitting.
+
+* Pre-registration: In pre-registration, the team pre registers it's plan to an easily accessable journal, encouraging the researchers to think thoroughly about their method and hyperparameters tests. It helps prevent overfitting by not letting the original study deviate as much from the original plan, meaning that even if new information about the dataset is obtained through the researchers interaction, the pre registered plan won't allow those insights to be used, preventing overfitting. 
+* Nested cross-validation: In nested cross-validation, inner and outer rounds of cross-validation are applied, each evaluating different sets of hyperparameters and making it possible to learn different parameters without information leakage. It prevents overfitting by essentially applying the lock box method several times, each for one configuration of hyperparameters, allowing the researcher to search for different hyperparameters without information leaking to the model, preventing overfitting.
+* Blind analysis: In blind analysis, the model learn it's parameters or hyperparameters by analysing data that is orthogonal to it's main objective or by removing the labels of the data, meaning that it won't learn any meaningful insights about the actual data it'll be tested on. It can be seen as a regularization technique, such as dropout for neural networks or L2 for machine learning in general, and it prevents overfitting by increasing the bias, and thus, reducing variability.
+
+# Contributions
+
+Questions 1 to 2 -> Micky
+
+Questions 3 to 4 -> Yann

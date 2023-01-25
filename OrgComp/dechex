@@ -1,0 +1,122 @@
+.data
+
+.align 0
+
+RecebeMod16: .space 34
+VetAux: .space 34
+
+.text
+.globl main
+main:
+
+	#ler valor a ser convertido
+	li $v0, 5
+	syscall 
+
+	#mover valor para $s0
+	move $s0, $v0
+	
+	#carregar registrador $t0 com 16 para a divisão 
+	li $t0, 16
+	
+	#carregar endereço do vetor1 em $t1
+	la $t1, RecebeMod16
+	
+	#carregar endereço do vetor1 em $t8
+	la $t8, VetAux
+	
+	#carrega em $t9 o parametro para desvio
+	li $t9, 58
+	
+	#$t5 será o contador
+	move $t5, $zero
+	
+	
+	
+#Armazena Dec%16 em RecebeMod16, convertendo ints ascii
+#$s1 =  valor Decimal
+#$t0 = base 16
+#$t1 = enderco de Recebe Mod16
+#$t8 = endereço VetAux
+#$t9 = parametro de desvio (verificar se eh maior que '9' ->58)
+#$t5 = contador
+CreateVetMod:
+
+	#condição de parada
+	beq $s0, $zero, endCreateVetMod
+	
+	#divide $s0 por 16
+	div $s0, $t0
+	
+	#salvar inteiro em $s0 e resto em $t2
+	mflo $s0
+	mfhi $t2
+	
+	#converter valor para representar o digito de acordo com a tabela ascii
+	addi $t2, $t2, 48 
+	
+	#se o valor do digito for menor que 10 desvia
+	blt $t2, $t9 , pulaDH
+	addi $t2, $t2, 7
+pulaDH: 
+	
+	#armazena t2 no RecebeMod16
+	sb $t2, 0 ($t1)
+	
+	#incrementa t1
+	addi $t1, $t1, 1
+	
+	#incrementa $t5
+	addi $t5, $t5, 1
+	
+	j CreateVetMod
+	
+endCreateVetMod:
+
+	#se o contador for 0 imprime valor final como 0
+	beq $t5, $zero, zero
+
+# Inverte o vetor RecebeMod16($t1) armazenando ele no vetor VetAux($t8)
+#$t5 = contador/parametro do branch
+#recebe o valor da posicao de RecebeMod16 e armazena em VEtAux
+InverteMods:
+	
+	#anda com a posicao de t1
+	addi $t1, $t1, -1
+	
+	#decrementa o contador
+	addi $t5, $t5, -1
+	
+	#ve se o contador chegou em 0
+	blt $t5, $zero, endInverteMods
+	
+	#pega o valor de $t4 (RecebeMod16)
+	lb $t4, 0 ($t1)
+	
+	#armazena em $t8(VetAux)
+	sb $t4, 0 ($t8)
+	
+	#anda com a posicao de $t8
+	addi $t8, $t8, 1
+	 
+	
+	j InverteMods
+
+#Printa e finaliza o ocdigo
+endInverteMods: 
+	
+	li $v0, 4
+	la $a0, VetAux
+	syscall
+	
+	li $v0, 10
+	syscall
+
+#Printa e finaliza o ocdigo
+zero:
+	li $v0, 1
+	move $a0, $t5
+	syscall
+	
+	li $v0, 10
+	syscall

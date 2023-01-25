@@ -1,0 +1,15 @@
+function [] = clustering(X)
+    X = sort(X);
+    methods = {'single', 'average', 'complete', 'ward'};
+    % ploting the dendrograms
+    for i = 1:length(methods)
+        Xlinked = linkage(X, methods(i));
+        dendrogram(Xlinked)
+        hold on;
+    end
+    while K < 1 &  K < 
+
+
+    %dont know if i can use the built in function for clustering
+    %clusteredX = cluster(Xlinked,)  
+end

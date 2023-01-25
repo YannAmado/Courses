@@ -1,0 +1,21 @@
+INDEX VERSION 1.131+C:\Users\Yann\Desktop\BCC\POO\.metadata\.plugins\org.eclipse.jdt.core
+2419182814.index
+2318424954.index
+1500372364.index
+3272895109.index
+294990869.index
+64288423.index
+3264848191.index
+1516762190.index
+2117173164.index
+3763726863.index
+640619726.index
+2930808515.index
+3295766436.index
+3901917526.index
+3535037369.index
+3755562286.index
+240880419.index
+4146212412.index
+1879297476.index
+2538789529.index

@@ -1,0 +1,7 @@
+function [] = TSNE(X, Y)
+    tsne(X);
+    for i = 1:length(Y)
+        gscatter()
+    end
+    gscatter()
+end

@@ -1,0 +1,85 @@
+---
+title: "Data Analytics & Communication Assignment 5"
+author: "Marieke van Vugt"
+output: 
+  pdf_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This week's assignment will be about performing statistical tests and communicating the resulting conclusions. We go back to using the decision.dat dataset that we used in assignment 2 (see the datasetsEN.pdf PDF in the assignment 2 directory on Nestor for more information about this dataset).
+
+**PSA: Include the code you used to come to your conclusions and use the rules for reporting results of statistical tests (see lecture week 5). Proper reporting includes not using variable names but the name of the actual thing you're testing (e.g., don't say isDots, but rather, "control trials" and "experiment trials"). Also remember to submit your report as PDF.**
+
+# T-test
+In the random dot motion decision task from which the data are derived, a common question to ask is whether there is a difference in response time (RT) between the easy and difficult conditions (high and low coherence, respectively) of the dots trials. Before we can do that comparison, we have to remove the control condition which does not have random dots but arrows instead. These control trials can be removed using the following code (where subj1 refers to the data for subject 1, and where you should adjust the path to where your decision.dat file is located):
+
+```{r,results='hide',warning=FALSE,message=FALSE}
+library(tidyverse)
+dat<-read.table("/Users/mvugt/teaching/DataAnalytics&Communication/decision.dat",header=T)
+subj1 <- dat %>% filter(subjNo == 1)
+```
+
+```{r,echo=TRUE,eval=FALSE}
+onlyDots <- subj1 %>% filter(isDots == 1)
+```
+
+On top of that, RT tests are usually done only on correct response times. Remove the response times for incorrect trials. Now you have the correct dataset, you use a t-test to find out whether there is a difference in RT between low- and high-coherence trials (I am aware that these data are not normally distributed, so technically a t-test is not recommended in this case, but for the sake of exercise, you are requested to do a t-test here).
+
+(a) Which type of t-test do you use and why? (consider paired/unpaired)
+
+(b) Perform the t-test and report the results. In reporting, use the correct notation, and also mention the averages that you are comparing to help the reader understand what your effect looks like. This week's lecture provides some examples of how to report on results of statistical tests.
+
+In general the performance of a single participant cannot tell us too much, because there are large differences between individuals. For this reason, more commonly group tests are done, in which the average RT for each individual in each condition is compared across the group (i.e., every participant contributes an average RT for low coherence and another average RT for high coherence). For this you need to first average the data for every participant (such that there is an average RT for low-coherence trials and an average RT for high-coherence trials).
+
+_Hint:_ you can summarize data across variables using a variant of the following code (in this example I compute the average of all variables for each block for each participant). Think about what summary variables help you to answer the question of a difference in RT. 
+
+```{r,echo=TRUE,eval=FALSE}
+onlyDotsAll <- dat[dat$isDots==1,]
+avByBlock <- onlyDotsAll %>% group_by(blocknum, subjNo) %>% summarise_all(mean)
+```
+
+(c) In this situation, what t-test do you need, and why?
+
+(d) Perform this t-test and report the results.
+
+(e) Compute the cohen's d effect size for the last t-test you did using `cohensD` in the package `lsr`, and comment on the result.
+
+# Non-parametric alternatives
+
+Now compare again RT between low and high coherence conditions across participants, but this time by means of a non-parametric test. 
+
+(a) What non-parametric test should you use? Explain your answer.
+
+(b) Perform the test and report on your findings.
+
+# One-way ANOVA
+
+In this question we use a one-way ANOVA to examine whether for participant 1 there is a difference in RT between the low- and the high-coherence trials. As before, we do this analysis only for the dots trials (i.e., not for the control trials). 
+
+(a) Report your results (e.g., A one-way ANOVA indicated a significant effect of task condition (dots versus control) on RT ($F(1,29)=9.32$, $p<0.001$). This indicates that ....). Include a plot to help visualize the results. 
+
+(b) Then compare the results to the t-test from question 1. What do you notice? Explain your answer.  
+
+(c) Do you need to correct for multiple comparisons? If not, explain why not. If yes, explain how you would do that.
+
+(d) Compute an effect size $\eta^2$ using `etaSquared` in the `lsr` package and comment on the result.
+
+# Two-way ANOVA
+
+A follow-up question is whether the effect of coherence depends on the direction in which the dots are moving. To examine this question, perform a two-way ANOVA on the data of participants together, focusing on the interaction between `isLeft` and `cohFac`. I know that a repeated measures ANOVA is more correct here, but for the sake of the exercise perform a two-way ANOVA without repeated measures first (repeated measures follows in the next question).
+
+Perform the ANOVA, and use `interaction.plot` to help you interpret the results. Be sure to properly report your conclusions. Also, be sure to use language that is typically used to describe ANOVAs, such as "there was a main effect of...", "there was an interaction between X and Y, which meant that ...". For more information, check the ANOVA chapter in https://learningstatisticswithr.com/book/.
+
+# Repeated-measures ANOVA
+
+Of course the proper way to do these analyses is to not use a two-way anova but rather a repeated measures ANOVA. 
+
+(a) Explain why a repeated measures ANOVA is better than a two-way ANOVA without repeated measures in this case.
+
+(b) Now repeat the two-way ANOVA from question 4 with a repeated measures ANOVA. Report and interpret the results, which includes comparing your results to what you obtained in question 4.
+
+(c) Do we actually satisfy the prerequisites for an ANOVA? You can test this with `lillie.test` (from the package `nortest`, see the lecture for an example; note that you need to run the test for every task condition separately, because if there are differences between conditions, this may render the combined data non-normal or even multimodal).
